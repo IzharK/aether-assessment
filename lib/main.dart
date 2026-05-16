@@ -48,7 +48,7 @@ class AetherDashboard extends StatelessWidget {
 
   Future<void> _handleJoinRaid(BuildContext context) async {
     // Generate a pseudo-random user ID for the demo
-    final String userId = 'user_\${DateTime.now().millisecondsSinceEpoch}';
+    final String userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
 
     // Call the transaction-backed join method
     final bool success = await raidService.joinRaid(userId: userId);
