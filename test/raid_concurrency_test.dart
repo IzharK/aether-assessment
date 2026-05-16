@@ -2,6 +2,7 @@
 // a `RaidService` class with a `joinRaid({required String userId})`
 // method in your lib folder, and import it here.
 import 'package:aether_assessment/raid_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -21,16 +22,15 @@ void main() {
         );
       }
 
-      await fakeFirestore.collection('events').doc('dragon_raid').set({
-        'slots_filled': 0,
-        'max_slots': 15,
-      });
+      await fakeFirestore.collection('events').doc('dragon_raid').set(
+        <String, dynamic>{'slots_filled': 0, 'max_slots': 15},
+      );
     });
 
     test(
       'Thundering Herd: 50 simultaneous join requests must strictly cap at 15',
       () async {
-        List<Future<bool>> joinRequests = [];
+        final List<Future<bool>> joinRequests = <Future<bool>>[];
 
         for (int i = 0; i < 50; i++) {
           try {
@@ -42,16 +42,14 @@ void main() {
           }
         }
 
-        final results = await Future.wait(joinRequests);
-        final successfulJoins = results
-            .where((result) => result == true)
+        final List<bool> results = await Future.wait(joinRequests);
+        final int successfulJoins = results
+            .where((bool result) => result == true)
             .length;
 
-        final snapshot = await fakeFirestore
-            .collection('events')
-            .doc('dragon_raid')
-            .get();
-        final slotsFilled = snapshot.data()?['slots_filled'] ?? 0;
+        final DocumentSnapshot<Map<String, dynamic>> snapshot =
+            await fakeFirestore.collection('events').doc('dragon_raid').get();
+        final int slotsFilled = snapshot.data()?['slots_filled'] as int? ?? 0;
 
         expect(
           successfulJoins,
