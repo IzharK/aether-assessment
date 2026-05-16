@@ -5,7 +5,7 @@
 - `setState`: 2 | `ValueNotifier`: 2 | `RepaintBoundary`: 2
 ✅ Targeted repaints detected.
 ## 2. Developer Thought Log
-- **setup.dart** (Line 126): ')) {
-- **setup.dart** (Line 127): \') + 11).trim()}');
-- **setup.dart** (Line 160): ` comments found.*');
+- **setup.dart** (Line 130): ')) {
+- **setup.dart** (Line 131): ') + 11).trim()}');
+- **setup.dart** (Line 164): ` comments found.*');
 - **raid_service.dart** (Line 36): We use a Dart Mutex here to serialize the fake_cloud_firestore mock

@@ -1,60 +1,63 @@
+import 'dart:developer';
 import 'dart:io';
 
 void main() async {
-  print('===================================================');
-  print('🛠️  Aether Environment Setup');
-  print('===================================================');
+  log('===================================================');
+  log('🛠️  Aether Environment Setup');
+  log('===================================================');
 
   // 1. Validate Root Directory
-  final pubspec = File('pubspec.yaml');
+  final File pubspec = File('pubspec.yaml');
   if (!pubspec.existsSync()) {
-    print('❌ ERROR: pubspec.yaml not found.');
-    print(
+    log('❌ ERROR: pubspec.yaml not found.');
+    log(
       '💡 HEALING ACTION: You must run this script from the root of your Flutter project.',
     );
     exit(1);
   }
 
   // 2. Inject Required Dependencies
-  print('📦 Checking testing & linting dependencies...');
-  final pubspecContent = pubspec.readAsStringSync();
-  final missingDeps = <String>[];
+  log('📦 Checking testing & linting dependencies...');
+  final String pubspecContent = pubspec.readAsStringSync();
+  final List<String> missingDeps = <String>[];
 
-  if (!pubspecContent.contains('fake_cloud_firestore:'))
+  if (!pubspecContent.contains('fake_cloud_firestore:')) {
     missingDeps.add('fake_cloud_firestore');
-  if (!pubspecContent.contains('flutter_lints:'))
+  }
+  if (!pubspecContent.contains('flutter_lints:')) {
     missingDeps.add('flutter_lints');
+  }
 
   if (missingDeps.isNotEmpty) {
-    print(
-      '⚙️  Injecting missing dev_dependencies: ${missingDeps.join(', ')}...',
-    );
-    final result = await Process.run('flutter', [
+    log('⚙️  Injecting missing dev_dependencies: ${missingDeps.join(', ')}...');
+    final ProcessResult result = await Process.run('flutter', <String>[
       'pub',
       'add',
       '--dev',
       ...missingDeps,
     ], runInShell: true);
     if (result.exitCode != 0) {
-      print('❌ ERROR: Failed to add dependencies. Please add them manually.');
-      print(result.stderr);
+      log('❌ ERROR: Failed to add dependencies. Please add them manually.');
+      log(result.stderr);
     } else {
-      print('✅ Dependencies injected successfully.');
+      log('✅ Dependencies injected successfully.');
     }
   } else {
-    print('✅ All necessary dev_dependencies are present.');
+    log('✅ All necessary dev_dependencies are present.');
   }
 
   // 3. Ensure Git is present and healthy
-  final hookDir = Directory('.git/hooks');
+  final Directory hookDir = Directory('.git/hooks');
   if (!hookDir.existsSync()) {
-    print('⚠️  No .git directory found. Initializing git...');
-    final gitInit = await Process.run('git', ['init'], runInShell: true);
+    log('⚠️  No .git directory found. Initializing git...');
+    final ProcessResult gitInit = await Process.run('git', <String>[
+      'init',
+    ], runInShell: true);
     if (gitInit.exitCode != 0) {
-      print(
+      log(
         '❌ ERROR: Git is not installed or accessible. The telemetry hook cannot be installed.',
       );
-      print(
+      log(
         '💡 HEALING ACTION: Install Git, run "git init", and re-run this script.',
       );
       exit(1);
@@ -66,37 +69,38 @@ void main() async {
   _generateCompilerScript();
 
   // 5. Safely Append to pre-commit hook (do not overwrite existing hooks)
-  final isWindows = Platform.isWindows;
-  final hookFile = File('.git/hooks/pre-commit');
-  final hookCommand = 'dart aether_compiler.dart\ngit add AETHER_TELEMETRY.md';
+  final bool isWindows = Platform.isWindows;
+  final File hookFile = File('.git/hooks/pre-commit');
+  final String hookCommand =
+      'dart aether_compiler.dart\ngit add AETHER_TELEMETRY.md';
 
   if (hookFile.existsSync()) {
-    final currentHook = hookFile.readAsStringSync();
+    final String currentHook = hookFile.readAsStringSync();
     if (!currentHook.contains('aether_compiler.dart')) {
-      print('🔗 Appending Aether telemetry to existing pre-commit hook...');
+      log('🔗 Appending Aether telemetry to existing pre-commit hook...');
       hookFile.writeAsStringSync(
         '\n# Aether Telemetry\n$hookCommand\n',
         mode: FileMode.append,
       );
     }
   } else {
-    print('🔗 Creating new pre-commit hook...');
+    log('🔗 Creating new pre-commit hook...');
     hookFile.writeAsStringSync('#!/bin/sh\n# Aether Telemetry\n$hookCommand\n');
   }
 
   if (!isWindows) {
-    await Process.run('chmod', ['+x', '.git/hooks/pre-commit']);
+    await Process.run('chmod', <String>['+x', '.git/hooks/pre-commit']);
   }
 
-  print('\n✅ SETUP COMPLETE. The Aether "Flight Recorder" is active.');
-  print(
+  log('\n✅ SETUP COMPLETE. The Aether "Flight Recorder" is active.');
+  log(
     '-> You can now write code normally. Your architectural decisions will be safely logged on commit.',
   );
-  print('===================================================');
+  log('===================================================');
 }
 
 void _generateCompilerScript() {
-  final compilerCode = '''
+  final String compilerCode = '''
 import 'dart:io';
 
 void main() {
@@ -124,7 +128,7 @@ void main() {
           if (line.contains('FieldValue.increment')) incrementCount++;
           
           if (line.contains('// @AETHER:')) {
-            thoughts.add('- **\${entity.uri.pathSegments.last}** (Line \${i+1}): \${line.substring(line.indexOf(\'// @AETHER:\') + 11).trim()}');
+            thoughts.add('- **\${entity.uri.pathSegments.last}** (Line \${i+1}): \${line.substring(line.indexOf('// @AETHER:') + 11).trim()}');
           }
         }
       } catch (_) {
