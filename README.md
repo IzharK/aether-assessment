@@ -1,16 +1,4 @@
-# aether_assessment
+# Project Aether
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Firebase Read-Cost Mitigation Strategy
+To prevent a catastrophic Firebase billing spike when 10,000 players chat simultaneously, we must never bind unbounded `collection(...).snapshots()` listeners to the client. Instead, we execute a single `get()` to fetch the initial batch of messages and only subscribe to a strongly bounded listener (e.g., `limit(20)`) for new messages appended after the connection timestamp. For true hyper-scale, we would abandon direct collection stream listeners entirely and instead maintain a single, server-aggregated "latest_messages" document that 10,000 clients can listen to, collapsing 10,000 query evaluations into a single predictable document read per update.

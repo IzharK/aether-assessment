@@ -5,6 +5,7 @@
 - `setState`: 1 | `ValueNotifier`: 5 | `RepaintBoundary`: 4
 ✅ Targeted repaints detected.
 ## 2. Developer Thought Log
+- **engagement_chat.dart** (Line 38): To mitigate catastrophic read costs, we strictly limit the snapshot
 - **setup.dart** (Line 130): ')) {
 - **setup.dart** (Line 131): ') + 11).trim()}');
 - **setup.dart** (Line 164): ` comments found.*');

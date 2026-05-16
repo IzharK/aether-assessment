@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import 'engagement_chat.dart';
 import 'raid_service.dart';
 import 'world_boss_timer.dart';
 
@@ -17,13 +19,18 @@ void main() {
     'max_slots': 15,
   });
 
-  runApp(AetherApp(raidService: raidService));
+  runApp(AetherApp(raidService: raidService, firestore: fakeFirestore));
 }
 
 class AetherApp extends StatelessWidget {
-  const AetherApp({super.key, required this.raidService});
+  const AetherApp({
+    super.key,
+    required this.raidService,
+    required this.firestore,
+  });
 
   final RaidService raidService;
+  final FirebaseFirestore firestore;
 
   @override
   Widget build(BuildContext context) {
@@ -36,15 +43,20 @@ class AetherApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: AetherDashboard(raidService: raidService),
+      home: AetherDashboard(raidService: raidService, firestore: firestore),
     );
   }
 }
 
 class AetherDashboard extends StatelessWidget {
-  const AetherDashboard({super.key, required this.raidService});
+  const AetherDashboard({
+    super.key,
+    required this.raidService,
+    required this.firestore,
+  });
 
   final RaidService raidService;
+  final FirebaseFirestore firestore;
 
   Future<void> _handleJoinRaid(BuildContext context) async {
     // Generate a pseudo-random user ID for the demo
@@ -93,6 +105,8 @@ class AetherDashboard extends StatelessWidget {
                 textStyle: const TextStyle(fontSize: 20),
               ),
             ),
+            const SizedBox(height: 20),
+            Expanded(child: EngagementChat(firestore: firestore)),
           ],
         ),
       ),
