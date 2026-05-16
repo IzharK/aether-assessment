@@ -1,15 +1,16 @@
-import 'dart:developer';
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 
 void main() async {
-  log('===================================================');
-  log('🛡️  Aether Architecture Linter (Diagnostic Mode) 🛡️');
-  log('===================================================');
+  print('===================================================');
+  print('🛡️  Aether Architecture Linter (Diagnostic Mode) 🛡️');
+  print('===================================================');
 
   final File pubspec = File('pubspec.yaml');
   if (!pubspec.existsSync()) {
-    log('❌ CRITICAL ERROR: Not running in a Flutter project root.');
-    log('💡 HEALING: `cd` into your project directory before running this.');
+    print('❌ CRITICAL ERROR: Not running in a Flutter project root.');
+    print('💡 HEALING: `cd` into your project directory before running this.');
     return;
   }
 
@@ -18,17 +19,17 @@ void main() async {
   out.writeln('# Aether Diagnostic Report\n');
 
   // 1. Strict Lints
-  log('⏳ Running Diagnostic: Code Quality (flutter analyze)...');
+  print('⏳ Running Diagnostic: Code Quality (flutter analyze)...');
   try {
     final ProcessResult analyze = await Process.run('flutter', <String>[
       'analyze',
-    ]);
+    ], runInShell: true);
     if (analyze.exitCode == 0) {
-      log('✅ Linter: PASS');
+      print('✅ Linter: PASS');
       out.writeln('### 1. Code Quality');
       out.writeln('✅ **PASS:** Zero static analysis warnings.');
     } else {
-      log('❌ Linter: FAIL');
+      print('❌ Linter: FAIL');
       out.writeln('### 1. Code Quality');
       out.writeln('❌ **FAIL:** Static analysis found issues.');
       out.writeln(
@@ -36,18 +37,18 @@ void main() async {
       );
     }
   } catch (e) {
-    log(
+    print(
       '❌ CRITICAL ERROR: Could not run "flutter analyze". Is Flutter in your PATH?',
     );
     return;
   }
 
   // 2. Outcome Verification (Tests)
-  log('⏳ Running Diagnostic: Concurrency Check (flutter test)...');
+  print('⏳ Running Diagnostic: Concurrency Check (flutter test)...');
   final File testFile = File('test/raid_concurrency_test.dart');
 
   if (!testFile.existsSync()) {
-    log('❌ Tests: FAIL (raid_concurrency_test.dart is missing)');
+    print('❌ Tests: FAIL (raid_concurrency_test.dart is missing)');
     out.writeln('\n### 2. Concurrency Outcome');
     out.writeln('❌ **FAIL:** Missing test file.');
     out.writeln(
@@ -58,35 +59,37 @@ void main() async {
       final ProcessResult testResult = await Process.run('flutter', <String>[
         'test',
         'test/raid_concurrency_test.dart',
-      ]);
+      ], runInShell: true);
       if (testResult.exitCode == 0) {
-        log('✅ Tests: PASS');
+        print('✅ Tests: PASS');
         out.writeln('\n### 2. Concurrency Outcome');
         out.writeln(
           '✅ **PASS:** Your architecture survived the Thundering Herd.',
         );
       } else {
-        log('❌ Tests: FAIL');
+        print('❌ Tests: FAIL');
         out.writeln('\n### 2. Concurrency Outcome');
         out.writeln(
           '❌ **FAIL:** The 50-request blast failed to yield exactly 15 slots.',
         );
         out.writeln(
-          '\n💡 **HEALING ACTION:** Read your test failure logs. Did your `joinRaid()` method correctly handle the race condition? Are you using locks or transactions?',
+          '\n💡 **HEALING ACTION:** Read your test failure prints. Did your `joinRaid()` method correctly handle the race condition? Are you using locks or transactions?',
         );
       }
     } catch (e) {
-      log('❌ CRITICAL ERROR: Could not execute "flutter test".');
+      print('❌ CRITICAL ERROR: Could not execute "flutter test".');
     }
   }
 
   try {
     reportFile.writeAsStringSync(out.toString());
-    log('\n===================================================');
-    log('📄 Report saved to ARCHITECTURE_REPORT.md');
-    log('👀 Read the report for HEALING ACTIONS to fix your architecture.');
-    log('===================================================');
+    print('\n===================================================');
+    print('📄 Report saved to ARCHITECTURE_REPORT.md');
+    print('👀 Read the report for HEALING ACTIONS to fix your architecture.');
+    print('===================================================');
   } catch (e) {
-    log('❌ Could not write to ARCHITECTURE_REPORT.md. Check file permissions.');
+    print(
+      '❌ Could not write to ARCHITECTURE_REPORT.md. Check file permissions.',
+    );
   }
 }

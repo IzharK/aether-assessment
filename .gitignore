@@ -44,8 +44,3 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-
-# Aether related files
-AETHER_CHALLENGE.md
-AI_ARCHITECT_CONTEXT.md
-Project Aether_ The Challenge.pdf
