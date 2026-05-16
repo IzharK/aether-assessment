@@ -2,10 +2,12 @@
 ## 1. Architectural Fingerprint
 ✅ Atomic operations detected (`runTransaction`: 4, `increment`: 1)
 ### UI Performance
-- `setState`: 2 | `ValueNotifier`: 2 | `RepaintBoundary`: 2
+- `setState`: 1 | `ValueNotifier`: 5 | `RepaintBoundary`: 4
 ✅ Targeted repaints detected.
 ## 2. Developer Thought Log
 - **setup.dart** (Line 130): ')) {
 - **setup.dart** (Line 131): ') + 11).trim()}');
 - **setup.dart** (Line 164): ` comments found.*');
 - **raid_service.dart** (Line 36): We use a Dart Mutex here to serialize the fake_cloud_firestore mock
+- **world_boss_timer.dart** (Line 22): We use a 100ms periodic timer, but crucially we only update a ValueNotifier.
+- **world_boss_timer.dart** (Line 42): We wrap the timer text in a RepaintBoundary. Since it changes

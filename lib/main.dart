@@ -1,63 +1,100 @@
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import 'raid_service.dart';
+import 'world_boss_timer.dart';
+
 void main() {
-  runApp(const MyApp());
+  // Use FakeFirebaseFirestore for the local assessment build.
+  final FakeFirebaseFirestore fakeFirestore = FakeFirebaseFirestore();
+
+  // Initialize the RaidService with our fake firestore.
+  final RaidService raidService = RaidService(firestore: fakeFirestore);
+
+  // Initialize test data for the UI
+  fakeFirestore.collection('events').doc('dragon_raid').set(<String, dynamic>{
+    'slots_filled': 0,
+    'max_slots': 15,
+  });
+
+  runApp(AetherApp(raidService: raidService));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class AetherApp extends StatelessWidget {
+  const AetherApp({super.key, required this.raidService});
+
+  final RaidService raidService;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'Project Aether',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      home: AetherDashboard(raidService: raidService),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class AetherDashboard extends StatelessWidget {
+  const AetherDashboard({super.key, required this.raidService});
 
-  final String title;
+  final RaidService raidService;
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+  Future<void> _handleJoinRaid(BuildContext context) async {
+    // Generate a pseudo-random user ID for the demo
+    final String userId = 'user_\${DateTime.now().millisecondsSinceEpoch}';
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+    // Call the transaction-backed join method
+    final bool success = await raidService.joinRaid(userId: userId);
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? 'Successfully joined the raid!'
+                : 'Raid is full or failed to join.',
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text('Aether Command Center'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: .center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            // The 100ms Global Pulse component
+            const WorldBossTimer(),
+            const SizedBox(height: 40),
+            ElevatedButton.icon(
+              onPressed: () => _handleJoinRaid(context),
+              icon: const Icon(Icons.flash_on),
+              label: const Text('JOIN RAID'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                textStyle: const TextStyle(fontSize: 20),
+              ),
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
